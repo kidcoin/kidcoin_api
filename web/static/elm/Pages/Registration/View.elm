@@ -8,4 +8,4 @@ import Pages.Registration.Model exposing (..)
 
 view : Signal.Address Action -> Model -> Html
 view address model =
-    text <| "This is registration from embedded module"
+  text <| "This is registration from embedded module"
