@@ -28,8 +28,13 @@ module.exports = {
         exclude: /node_modules/,
         loader: "babel",
         query: {
-          presets: ['es2015']
+          presets: ["es2015"]
         }
+      },
+      {
+        test: /\.elm$/,
+        exclude: [/elm-stuff/, /node_modules/],
+        loader: "elm-webpack"
       },
       {
         test: /\.css$/,
@@ -42,7 +47,8 @@ module.exports = {
           "css!sass?includePaths[]=" + __dirname +  "/node_modules"
         )
       }
-    ]
+    ],
+    noParse: [/.elm$/]
   },
 
   plugins: [
