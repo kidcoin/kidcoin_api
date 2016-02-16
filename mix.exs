@@ -30,12 +30,16 @@ defmodule KidcoinApi.Mixfile do
   #
   # Type `mix help deps` for examples and options.
   defp deps do
-    [{:phoenix, "~> 1.0.4"},
-     {:phoenix_ecto, "~> 1.1"},
-     {:postgrex, ">= 0.0.0"},
-     {:phoenix_html, "~> 2.1"},
-     {:phoenix_live_reload, "~> 1.0", only: :dev},
-     {:cowboy, "~> 1.0"}]
+    [
+      {:cowboy, "~> 1.0"},
+      {:dialyxir, "~> 0.2", only: ~w(dev test)a},
+      {:dogma, "~> 0.0", only: ~w(dev test)a},
+      {:phoenix, "~> 1.0.4"},
+      {:phoenix_ecto, "~> 1.1"},
+      {:phoenix_html, "~> 2.1"},
+      {:phoenix_live_reload, "~> 1.0", only: :dev},
+      {:postgrex, ">= 0.0.0"},
+    ]
   end
 
   # Aliases are shortcut or tasks specific to the current project.
