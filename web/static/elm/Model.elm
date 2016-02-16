@@ -1,4 +1,4 @@
-module Model (Model, Action) where
+module Model (..) where
 
 import TransitRouter exposing (WithRoute)
 import Routes exposing (Route)

@@ -10,8 +10,6 @@ import Pages.Registration.Model
 
 
 -- use mergeMany if you have other mailboxes or signals to feed into StartApp
-
-
 actions : Signal Action
 actions =
     Signal.map RouterAction TransitRouter.actions
@@ -31,11 +29,8 @@ init path =
     TransitRouter.init routerConfig path initialModel
 
 
-
 -- in a typical SPA, you might have to trigger tasks when landing on a page,
 -- like an HTTP request to load specific data
-
-
 mountRoute : Route -> Route -> Model -> ( Model, Effects Action )
 mountRoute prevRoute route model =
     case route of
