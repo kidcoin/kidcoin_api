@@ -24,17 +24,13 @@ content address model =
     ]
 
 
-routeView : Signal.Address Action -> Model -> Html
-routeView address model =
-  case (TransitRouter.getRoute model) of
-    HomePage ->
-      Pages.Home.View.view (Signal.forwardTo address HomePageAction) model.homePageModel
-
-    LoginPage ->
-      Pages.Login.View.view (Signal.forwardTo address LoginPageAction) model.loginPageModel
-
-    RegistrationPage ->
-      Pages.Registration.View.view (Signal.forwardTo address RegistrationPageAction) model.registrationPageModel
+header : Model -> Html
+header model =
+  div
+    [ class "header" ]
+    [ menu model
+    , span [ class "logo" ] []
+    ]
 
 
 menu : Model -> Html
@@ -49,16 +45,33 @@ menu model =
 
 menuItem : Route -> String -> Html
 menuItem route linkText =
-  li [] [ a (clickTo <| Routes.encode route) [ text linkText ] ]
+  li
+    []
+    [ a (onClickNavigateTo <| Routes.encode route) [ text linkText ] ]
 
 
-header : Model -> Html
-header model =
-  div
-    [ class "header" ]
-    [ menu model
-    , span [ class "logo" ] []
-    ]
+onClickNavigateTo : String -> List Attribute
+onClickNavigateTo path =
+  [ href path
+  , onWithOptions
+      "click"
+      { stopPropagation = True, preventDefault = True }
+      Json.value
+      (\_ -> message TransitRouter.pushPathAddress path)
+  ]
+
+
+routeView : Signal.Address Action -> Model -> Html
+routeView address model =
+  case (TransitRouter.getRoute model) of
+    HomePage ->
+      Pages.Home.View.view (Signal.forwardTo address HomePageAction) model.homePageModel
+
+    LoginPage ->
+      Pages.Login.View.view (Signal.forwardTo address LoginPageAction) model.loginPageModel
+
+    RegistrationPage ->
+      Pages.Registration.View.view (Signal.forwardTo address RegistrationPageAction) model.registrationPageModel
 
 
 view : Signal.Address Action -> Model -> Html
@@ -68,18 +81,3 @@ view address model =
     [ header model
     , content address model
     ]
-
-
-
--- inner click helper
-
-
-clickTo : String -> List Attribute
-clickTo path =
-  [ href path
-  , onWithOptions
-      "click"
-      { stopPropagation = True, preventDefault = True }
-      Json.value
-      (\_ -> message TransitRouter.pushPathAddress path)
-  ]

@@ -7,6 +7,14 @@ import Pages.Registration.Model
 import Pages.Login.Model
 
 
+type Action
+  = NoOp
+  | RouterAction (TransitRouter.Action Route)
+  | HomePageAction Pages.Home.Model.Action
+  | LoginPageAction Pages.Login.Model.Action
+  | RegistrationPageAction Pages.Registration.Model.Action
+
+
 type alias Model =
   WithRoute
     Route
@@ -14,11 +22,3 @@ type alias Model =
     , loginPageModel : Pages.Login.Model.Model
     , registrationPageModel : Pages.Registration.Model.Model
     }
-
-
-type Action
-  = NoOp
-  | RouterAction (TransitRouter.Action Route)
-  | HomePageAction Pages.Home.Model.Action
-  | LoginPageAction Pages.Login.Model.Action
-  | RegistrationPageAction Pages.Registration.Model.Action

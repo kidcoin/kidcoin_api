@@ -11,14 +11,6 @@ type Route
   | RegistrationPage
 
 
-routeParsers : List (Matcher Route)
-routeParsers =
-  [ static HomePage "/"
-  , static RegistrationPage "/register"
-  , static LoginPage "/login"
-  ]
-
-
 decode : String -> Route
 decode path =
   RouteParser.match routeParsers path
@@ -43,3 +35,11 @@ redirect route =
   encode route
     |> Signal.send TransitRouter.pushPathAddress
     |> Effects.task
+
+
+routeParsers : List (Matcher Route)
+routeParsers =
+  [ static HomePage "/"
+  , static RegistrationPage "/register"
+  , static LoginPage "/login"
+  ]
