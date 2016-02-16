@@ -1,15 +1,24 @@
-// Configuration gotten from:
-// http://matthewlehner.net/using-webpack-with-phoenix-and-elixir/
-
-var CopyWebpackPlugin = require("copy-webpack-plugin");
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
-  entry: ["./web/static/js/app.js", "./web/static/css/app.css"],
+  devtool: "source-map",
+
+  entry: {
+    "app": ["./web/static/css/app.scss", "./web/static/js/app.js"],
+  },
 
   output: {
-    path: "./priv/static/js",
-    filename: "app.js"
+    path: "./priv/static",
+    filename: "js/app.js"
+  },
+
+  resolve: {
+    modulesDirectories: [ __dirname + "/web/static/js" ],
+    alias: {
+      phoenix: __dirname + "/deps/phoenix/web/static/js/phoenix.js",
+      phoenix_html: __dirname + "/deps/phoenix_html/web/static/js/phoenix_html.js",
+    }
   },
 
   module: {
@@ -17,29 +26,31 @@ module.exports = {
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loaders: ["babel"],
-        include: __dirname
+        loader: "babel",
+        query: {
+          presets: ['es2015']
+        }
       },
       {
         test: /\.css$/,
-        loader: ExtractTextPlugin.extract("css")
+        loader: ExtractTextPlugin.extract("style", "css")
+      },
+      {
+        test: /\.scss$/,
+        loader: ExtractTextPlugin.extract(
+          "style",
+          "css!sass?includePaths[]=" + __dirname +  "/node_modules"
+        )
       }
     ]
   },
 
   plugins: [
-    new CopyWebpackPlugin([{ from: "./web/static/assets" }]),
-    new ExtractTextPlugin("css/app.css")
-  ],
-
-  resolve: {
-    modulesDirectories: [ __dirname + "/web/static/js" ],
-    alias: {
-      phoenix_html:
-        __dirname + "/deps/phoenix_html/web/static/js/phoenix_html.js",
-      phoenix:
-        __dirname + "/deps/phoenix/web/static/js/phoenix.js"
-    }
-  }
-
-};
+    new ExtractTextPlugin("css/app.css"),
+    new CopyWebpackPlugin([
+      { from: "./web/static/assets" },
+      { from: "./deps/phoenix_html/web/static/js/phoenix_html.js",
+        to: "js/phoenix_html.js" }
+    ])
+  ]
+}

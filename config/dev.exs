@@ -12,7 +12,8 @@ config :kidcoin_api, KidcoinApi.Endpoint,
   code_reloader: true,
   cache_static_lookup: false,
   check_origin: false,
-  watchers: [node: ["node_modules/webpack/bin/webpack.js", "--watch-stdin", "--progress", "--colors"]]
+  watchers: [{Path.expand("node_modules/webpack/bin/webpack.js"), ["--watch",
+        "--colors", "--progress"]}]
 
 # Watch static and templates for browser reloading.
 config :kidcoin_api, KidcoinApi.Endpoint,

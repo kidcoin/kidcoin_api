@@ -28,5 +28,8 @@ warnings:
 watch:
 	watchman-make -p 'lib/**/*.ex' 'test/**/*.exs' 'test/data/test_cases/*.json' 'config/*.exs' -t $(WATCH_TARGET)
 
+webpack:
+	webpack --config webpack.config.js
+
 .PHONY: all compile dialyzer dogma stage-release prod-release server test warnings watch
 
