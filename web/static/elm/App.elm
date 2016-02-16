@@ -1,4 +1,4 @@
-module App where
+module App (..) where
 
 import Effects exposing (Never)
 import Signal
@@ -7,19 +7,23 @@ import Task
 import Update exposing (init, update, actions)
 import View exposing (view)
 
+
 port initialPath : String
 
+
 app =
-  StartApp.start
-    { init = init initialPath
-    , update = update
-    , view = view
-    , inputs = [ actions ]
-    }
+    StartApp.start
+        { init = init initialPath
+        , update = update
+        , view = view
+        , inputs = [ actions ]
+        }
+
 
 main =
-  app.html
+    app.html
+
 
 port tasks : Signal (Task.Task Never ())
 port tasks =
-  app.tasks
+    app.tasks

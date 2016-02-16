@@ -5,24 +5,22 @@ import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Signal exposing (..)
 import Json.Decode as Json
-
 import TransitStyle
 import TransitRouter exposing (getTransition)
-
 import Model exposing (..)
 import Routes exposing (..)
-
 import Pages.Home.View
 import Pages.Login.View
 import Pages.Registration.View
 
+
 content : Signal.Address Action -> Model -> Html
 content address model =
     div [ class "content"
-        , style (TransitStyle.fadeSlideLeft 10 (getTransition model))
-        ]
-        [ routeView address model
-        ]
+    , style (TransitStyle.fadeSlideLeft 10 (getTransition model))
+    ] [ routeView address model
+    ]
+
 
 routeView : Signal.Address Action -> Model -> Html
 routeView address model =
@@ -36,18 +34,20 @@ routeView address model =
         RegistrationPage ->
             Pages.Registration.View.view (Signal.forwardTo address RegistrationPageAction) model.registrationPageModel
 
+
 menu : Model -> Html
 menu model =
     ul [ class "nav nav-pills pull-right" ]
-    [ menuItem HomePage "Home"
-    , menuItem RegistrationPage "Register"
-    , menuItem LoginPage "Login"
-    ]
+        [ menuItem HomePage "Home"
+        , menuItem RegistrationPage "Register"
+        , menuItem LoginPage "Login"
+        ]
+
 
 menuItem : Route -> String -> Html
 menuItem route linkText =
-    li [] [ a (clickTo <| Routes.encode route) [ text linkText ]
-    ]
+    li [] [ a (clickTo <| Routes.encode route) [ text linkText ] ]
+
 
 header : Model -> Html
 header model =
@@ -56,6 +56,7 @@ header model =
         , span [ class "logo" ] []
         ]
 
+
 view : Signal.Address Action -> Model -> Html
 view address model =
     div [ class "container", attribute "role" "main" ]
@@ -63,14 +64,14 @@ view address model =
         , content address model
         ]
 
--- inner click helper
 
+-- inner click helper
 clickTo : String -> List Attribute
 clickTo path =
-  [ href path
-  , onWithOptions
-      "click"
-      { stopPropagation = True, preventDefault = True }
-      Json.value
-      (\_ -> message TransitRouter.pushPathAddress path)
-  ]
+    [ href path
+    , onWithOptions
+    "click"
+    { stopPropagation = True, preventDefault = True }
+    Json.value
+    (\_ -> message TransitRouter.pushPathAddress path)
+    ]
