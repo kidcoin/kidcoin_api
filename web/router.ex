@@ -16,7 +16,9 @@ defmodule KidcoinApi.Router do
   scope "/", KidcoinApi do
     pipe_through :browser # Use the default browser stack
 
-    get "/", PageController, :index
+    get "/", ElmController, :app
+    get "/login", ElmController, :app
+    get "/register", ElmController, :app
   end
 
   # Other scopes may use custom stacks.

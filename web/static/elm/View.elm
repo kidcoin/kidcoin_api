@@ -13,6 +13,8 @@ import Model exposing (..)
 import Routes exposing (..)
 
 import Pages.Home.View
+import Pages.Login.View
+import Pages.Registration.View
 
 content : Signal.Address Action -> Model -> Html
 content address model =
@@ -28,14 +30,11 @@ routeView address model =
         HomePage ->
             Pages.Home.View.view (Signal.forwardTo address HomePageAction) model.homePageModel
 
-        RegistrationPage ->
-            text <| "Register!"
-
         LoginPage ->
-            text <| "Login!"
+            Pages.Login.View.view (Signal.forwardTo address LoginPageAction) model.loginPageModel
 
-        EmptyRoute ->
-            text <| ""
+        RegistrationPage ->
+            Pages.Registration.View.view (Signal.forwardTo address RegistrationPageAction) model.registrationPageModel
 
 menu : Model -> Html
 menu model =

@@ -6,9 +6,8 @@ import TransitRouter
 
 type Route =
     HomePage
-    | RegistrationPage
     | LoginPage
-    | EmptyRoute
+    | RegistrationPage
 
 routeParsers : List (Matcher Route)
 routeParsers =
@@ -20,15 +19,14 @@ routeParsers =
 decode : String -> Route
 decode path =
     RouteParser.match routeParsers path
-    |> Maybe.withDefault EmptyRoute
+    |> Maybe.withDefault HomePage
 
 encode : Route -> String
 encode route =
     case route of
         HomePage -> "/"
-        RegistrationPage -> "/register"
         LoginPage -> "/login"
-        EmptyRoute -> ""
+        RegistrationPage -> "/register"
 
 redirect : Route -> Effects ()
 redirect route =

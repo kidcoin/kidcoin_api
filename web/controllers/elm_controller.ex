@@ -1,11 +1,11 @@
-defmodule KidcoinApi.PageController do
+defmodule KidcoinApi.ElmController do
   use KidcoinApi.Web, :controller
 
   alias KidcoinApi.User
 
-  def index(conn, _params) do
+  def app(conn, _params) do
     conn
     |> assign(:users, Repo.all(User))
-    |> render("index.html")
+    |> render("app.html")
   end
 end
