@@ -1,4 +1,4 @@
-module Pages.Registration.View (..) where
+module Pages.Registration.Update (..) where
 
 import Pages.Registration.Model exposing (..)
 

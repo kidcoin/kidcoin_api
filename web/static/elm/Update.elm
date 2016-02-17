@@ -1,12 +1,15 @@
 module Update (..) where
 
 import Effects exposing (Effects, none)
-import TransitRouter
 import Model exposing (..)
-import Routes exposing (..)
 import Pages.Home.Model
+import Pages.Home.Update
 import Pages.Login.Model
+import Pages.Login.Update
 import Pages.Registration.Model
+import Pages.Registration.Update
+import Routes exposing (..)
+import TransitRouter
 
 
 -- use mergeMany if you have other mailboxes or signals to feed into StartApp
@@ -62,16 +65,30 @@ update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
     NoOp ->
-      ( model, Effects.none )
+      noEffects model
 
-    HomePageAction _ ->
-      ( model, Effects.none )
+    HomePageAction pageAction ->
+      noEffects
+        { model
+          | homePageModel = Pages.Home.Update.update pageAction model.homePageModel
+        }
 
-    RegistrationPageAction _ ->
-      ( model, Effects.none )
+    LoginPageAction pageAction ->
+      noEffects
+        { model
+          | loginPageModel = Pages.Login.Update.update pageAction model.loginPageModel
+        }
 
-    LoginPageAction _ ->
-      ( model, Effects.none )
+    RegistrationPageAction pageAction ->
+      noEffects
+        { model
+          | registrationPageModel = Pages.Registration.Update.update pageAction model.registrationPageModel
+        }
 
     RouterAction routeAction ->
       TransitRouter.update routerConfig routeAction model
+
+
+noEffects : Model -> ( Model, Effects a )
+noEffects model =
+  ( model, Effects.none )
