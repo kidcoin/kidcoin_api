@@ -1,19 +1,38 @@
-module Pages.Registration.Model (Model, Action, init) where
+module Pages.Registration.Model (..) where
 
 
 type Action
-  = None
-  | Submit
+  = FormSubmit
+  | UpdateField FieldType String
+
+
+type FieldType
+  = HouseholdField
+  | UsernameField
+  | PasswordField
+  | PasswordConfirmationField
+
+
+type alias Field =
+  { fieldType : FieldType
+  , value : String
+  , error : String
+  , hasError : Bool
+  }
 
 
 type alias Model =
-  { name : String
-  , password : String
-  , password_confirmation : String
-  , username : String
+  { household : Field
+  , username : Field
+  , password : Field
+  , passwordConfirmation : Field
   }
 
 
 init : Model
 init =
-  Model "" "" "" ""
+  Model
+    (Field HouseholdField "" "" False)
+    (Field UsernameField "" "" False)
+    (Field PasswordField "" "" False)
+    (Field PasswordConfirmationField "" "" False)

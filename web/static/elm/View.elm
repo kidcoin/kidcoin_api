@@ -57,7 +57,7 @@ onClickNavigateTo path =
       "click"
       { stopPropagation = True, preventDefault = True }
       Json.value
-      (\_ -> message TransitRouter.pushPathAddress path)
+      (\_ -> Signal.message TransitRouter.pushPathAddress path)
   ]
 
 
