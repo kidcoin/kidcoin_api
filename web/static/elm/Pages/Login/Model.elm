@@ -1,14 +1,32 @@
-module Pages.Login.Model (Model, Action, init) where
+module Pages.Login.Model (..) where
 
 
 type Action
-  = None
+  = FormSubmit
+  | UpdateField FieldType String
+
+
+type FieldType
+  = UsernameField
+  | PasswordField
+
+
+type alias Field =
+  { fieldType : FieldType
+  , value : String
+  , error : String
+  , hasError : Bool
+  }
 
 
 type alias Model =
-  {}
+  { username : Field
+  , password : Field
+  }
 
 
 init : Model
 init =
   Model
+    (Field UsernameField "" "" False)
+    (Field PasswordField "" "" False)
