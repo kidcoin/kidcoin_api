@@ -32,9 +32,9 @@ header model =
     ]
 
 
-title : Html
-title =
-  h3 [ class "color-primary" ] [ text "KidCoin" ]
+isCurrentRoute : Route -> Model -> Bool
+isCurrentRoute route model =
+  route == (TransitRouter.getRoute model)
 
 
 menu : Model -> Html
@@ -46,22 +46,29 @@ menu model =
         [ class "column column-33" ]
         [ div
             [ class "row" ]
-            [ menuItem HomePage "Home"
-            , menuItem RegistrationPage "Register"
-            , menuItem LoginPage "Login"
+            [ menuItem model HomePage "Home"
+            , menuItem model RegistrationPage "Register"
+            , menuItem model LoginPage "Login"
             ]
         ]
     ]
 
 
-menuItem : Route -> String -> Html
-menuItem route linkText =
+menuItem : Model -> Route -> String -> Html
+menuItem model route linkText =
   let
     navigationAttributes =
       onClickNavigateTo <| Routes.encode route
 
+    linkClasses =
+      classList
+        [ ( "button", True )
+        , ( "button-small", True )
+        , ( "button-outline", isCurrentRoute route model )
+        ]
+
     linkAttributes =
-      navigationAttributes ++ [ class "button button-small button-outline" ]
+      navigationAttributes ++ [ linkClasses ]
   in
     div
       [ class "column" ]
@@ -83,13 +90,24 @@ routeView : Signal.Address Action -> Model -> Html
 routeView address model =
   case (TransitRouter.getRoute model) of
     HomePage ->
-      Pages.Home.View.view (Signal.forwardTo address HomePageAction) model.homePageModel
+      Pages.Home.View.view
+        (Signal.forwardTo address HomePageAction)
+        model.homePageModel
 
     LoginPage ->
-      Pages.Login.View.view (Signal.forwardTo address LoginPageAction) model.loginPageModel
+      Pages.Login.View.view
+        (Signal.forwardTo address LoginPageAction)
+        model.loginPageModel
 
     RegistrationPage ->
-      Pages.Registration.View.view (Signal.forwardTo address RegistrationPageAction) model.registrationPageModel
+      Pages.Registration.View.view
+        (Signal.forwardTo address RegistrationPageAction)
+        model.registrationPageModel
+
+
+title : Html
+title =
+  h3 [ class "color-primary" ] [ text "KidCoin" ]
 
 
 view : Signal.Address Action -> Model -> Html
