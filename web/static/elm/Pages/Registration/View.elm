@@ -52,8 +52,8 @@ inputType fieldType =
       "text"
 
 
-formRow : Signal.Address Action -> Field -> Html
-formRow address field =
+formField : Signal.Address Action -> Field -> Html
+formField address field =
   let
     inputName =
       fieldName field.fieldType
@@ -62,14 +62,20 @@ formRow address field =
       fieldLabel field.fieldType
 
     rowLabel =
-      label [ for inputName ] [ text labelText ]
+      if field.hasError then
+        label
+          [ for inputName, class "error" ]
+          [ text <| labelText ++ " " ++ field.error ]
+      else
+        label [ for inputName ] [ text labelText ]
 
     rowInputType =
       inputType field.fieldType
 
     classes =
       classList
-        [ ( "form-row", True )
+        [ ( "column", True )
+        , ( "form-row", True )
         , ( "error", field.hasError )
         ]
 
@@ -86,16 +92,9 @@ formRow address field =
     rowInput =
       input rowInputAttributes []
 
-    errorMessage =
-      if field.hasError then
-        span [ class "error" ] [ text field.error ]
-      else
-        span [] []
-
     children =
       [ rowLabel
       , rowInput
-      , errorMessage
       ]
   in
     div
@@ -105,33 +104,49 @@ formRow address field =
 
 formSubmitButton : Signal.Address Action -> Html
 formSubmitButton address =
-  input
-    [ type' "button"
-    , name "register"
-    , value "Register"
-    , onWithOptions
-        "click"
-        { stopPropagation = True, preventDefault = True }
-        Json.Decode.value
-        (\_ -> Signal.message address FormSubmit)
+  div
+    [ class "column" ]
+    [ input
+        [ type' "button"
+        , name "register"
+        , value "Register"
+        , onWithOptions
+            "click"
+            { stopPropagation = True, preventDefault = True }
+            Json.Decode.value
+            (\_ -> Signal.message address FormSubmit)
+        ]
+        []
     ]
-    []
 
 
 formView : Signal.Address Action -> Model -> Html
 formView address model =
   div
     []
-    [ formRow address model.household
-    , formRow address model.username
-    , formRow address model.password
-    , formRow address model.passwordConfirmation
-    , formSubmitButton address
+    [ formRow
+        [ formField address model.household
+        , formField address model.username
+        ]
+    , formRow
+        [ formField address model.password
+        , formField address model.passwordConfirmation
+        ]
+    , formRow
+        [ formSubmitButton address
+        ]
     ]
+
+
+formRow : List Html -> Html
+formRow children =
+  div [ class "row" ] children
 
 
 view : Signal.Address Action -> Model -> Html
 view address model =
   div
     [ class "form" ]
-    [ formView address model ]
+    [ h4 [] [ text "Register Household" ]
+    , formView address model
+    ]

@@ -101,7 +101,7 @@ validateField : Field -> Field
 validateField field =
   if field.value == "" then
     { field
-      | error = "" ++ (toString field.fieldType) ++ " cannot be empty"
+      | error = " cannot be empty"
       , hasError = True
     }
   else

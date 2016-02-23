@@ -29,25 +29,43 @@ header model =
   div
     [ class "header" ]
     [ menu model
-    , span [ class "logo" ] []
     ]
+
+
+title : Html
+title =
+  h3 [ class "color-primary" ] [ text "KidCoin" ]
 
 
 menu : Model -> Html
 menu model =
-  ul
-    [ class "nav nav-pills pull-right" ]
-    [ menuItem HomePage "Home"
-    , menuItem RegistrationPage "Register"
-    , menuItem LoginPage "Login"
+  div
+    [ class "row nav" ]
+    [ div [ class "column column-66" ] [ title ]
+    , div
+        [ class "column column-33" ]
+        [ div
+            [ class "row" ]
+            [ menuItem HomePage "Home"
+            , menuItem RegistrationPage "Register"
+            , menuItem LoginPage "Login"
+            ]
+        ]
     ]
 
 
 menuItem : Route -> String -> Html
 menuItem route linkText =
-  li
-    []
-    [ a (onClickNavigateTo <| Routes.encode route) [ text linkText ] ]
+  let
+    navigationAttributes =
+      onClickNavigateTo <| Routes.encode route
+
+    linkAttributes =
+      navigationAttributes ++ [ class "button button-small button-outline" ]
+  in
+    div
+      [ class "column" ]
+      [ a linkAttributes [ text linkText ] ]
 
 
 onClickNavigateTo : String -> List Attribute
