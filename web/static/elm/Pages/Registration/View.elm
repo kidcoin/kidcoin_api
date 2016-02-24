@@ -39,17 +39,18 @@ fieldName fieldType =
       "username"
 
 
-inputType : FieldType -> String
-inputType fieldType =
-  case fieldType of
-    PasswordField ->
-      "password"
-
-    PasswordConfirmationField ->
-      "password"
-
-    otherwise ->
-      "text"
+formLabel : Field -> String -> Html
+formLabel field inputName =
+  let
+    labelText =
+      fieldLabel field.fieldType
+  in
+    if field.hasError then
+      label
+        [ for inputName, class "error" ]
+        [ text <| labelText ++ " " ++ field.error ]
+    else
+      label [ for inputName ] [ text labelText ]
 
 
 formField : Signal.Address Action -> Field -> Html
@@ -58,16 +59,8 @@ formField address field =
     inputName =
       fieldName field.fieldType
 
-    labelText =
-      fieldLabel field.fieldType
-
     rowLabel =
-      if field.hasError then
-        label
-          [ for inputName, class "error" ]
-          [ text <| labelText ++ " " ++ field.error ]
-      else
-        label [ for inputName ] [ text labelText ]
+      formLabel field inputName
 
     rowInputType =
       inputType field.fieldType
@@ -143,10 +136,24 @@ formRow children =
   div [ class "row" ] children
 
 
+inputType : FieldType -> String
+inputType fieldType =
+  case fieldType of
+    PasswordField ->
+      "password"
+
+    PasswordConfirmationField ->
+      "password"
+
+    otherwise ->
+      "text"
+
+
 view : Signal.Address Action -> Model -> Html
 view address model =
   div
     [ class "form" ]
     [ h4 [] [ text "Register Household" ]
     , formView address model
+    , text <| toString model.usernameAvailable
     ]

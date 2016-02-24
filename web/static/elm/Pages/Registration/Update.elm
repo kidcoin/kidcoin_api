@@ -1,85 +1,31 @@
 module Pages.Registration.Update (..) where
 
+import Effects exposing (Effects, none)
+import Http
+import Json.Decode
 import Pages.Registration.Model exposing (..)
+import String exposing (isEmpty, trim)
+import Task
 
 
-update : Action -> Model -> Model
-update action model =
-  case (Debug.log "processing registration update action" action) of
-    FormSubmit ->
-      redirectToLoginPageOrShowErrors model
-
-    UpdateField HouseholdField value ->
-      setFieldValue model.household value
-        |> updateHouseholdInModel model
-
-    UpdateField PasswordConfirmationField value ->
-      setFieldValue model.passwordConfirmation value
-        |> updatePasswordConfirmationInModel model
-
-    UpdateField PasswordField value ->
-      setFieldValue model.password value
-        |> updatePasswordInModel model
-
-    UpdateField UsernameField value ->
-      setFieldValue model.username value
-        |> updateUsernameInModel model
-
-
-setFieldValue : Field -> String -> Field
-setFieldValue field value =
-  { field
-    | value = value
-  }
-
-
-redirectToLoginPageOrShowErrors : Model -> Model
-redirectToLoginPageOrShowErrors model =
+checkUsernameAvailability : Model -> ( Model, Effects Action )
+checkUsernameAvailability model =
   let
-    model' =
-      Debug.log "model after validation" <| validateFields model
+    url =
+      "/api/username/" ++ model.username.value
 
-    hasError =
-      model'.household.hasError
-        || model'.username.hasError
-        || model'.passwordConfirmation.hasError
-        || model'.password.hasError
+    request =
+      Http.get (Json.Decode.succeed UsernameNotAvailable) url
+
+    httpRequest =
+      Task.onError request (\error -> Task.succeed UsernameAvailable)
   in
-    case hasError of
-      True ->
-        model'
-
-      False ->
-        -- redirect to login page
-        model'
+    ( model, Effects.task httpRequest )
 
 
-validateFields : Model -> Model
-validateFields model =
-  let
-    household =
-      validateField model.household
-
-    username =
-      validateField model.username
-
-    password =
-      validateField model.password
-
-    passwordConfirmation =
-      validateField model.passwordConfirmation
-  in
-    { model
-      | household = household
-      , username = username
-      , password = password
-      , passwordConfirmation = passwordConfirmation
-    }
-
-
-usernameAvailable : Model -> Model
-usernameAvailable model =
-  model
+noEffects : Model -> ( Model, Effects Action )
+noEffects model =
+  ( model, Effects.none )
 
 
 passwordMatches : Model -> Field
@@ -97,18 +43,73 @@ passwordMatches model =
       }
 
 
-validateField : Field -> Field
-validateField field =
-  if field.value == "" then
-    { field
-      | error = " cannot be empty"
-      , hasError = True
-    }
-  else
-    { field
-      | error = ""
-      , hasError = False
-    }
+redirectToLoginPageOrShowErrors : Model -> ( Model, Effects Action )
+redirectToLoginPageOrShowErrors model =
+  let
+    model' =
+      Debug.log "model after validation" <| validateFields model
+
+    hasError =
+      model'.household.hasError
+        || model'.username.hasError
+        || model'.passwordConfirmation.hasError
+        || model'.password.hasError
+  in
+    case hasError of
+      True ->
+        model'
+          |> noEffects
+
+      False ->
+        -- redirect to login page
+        model'
+          |> noEffects
+
+
+setFieldValue : Field -> String -> Field
+setFieldValue field value =
+  { field
+    | value = value
+  }
+
+
+update : Action -> Model -> ( Model, Effects Action )
+update action model =
+  case (Debug.log "processing registration update action" action) of
+    FormSubmit ->
+      redirectToLoginPageOrShowErrors model
+
+    UpdateField HouseholdField value ->
+      setFieldValue model.household (trim value)
+        |> updateHouseholdInModel model
+        |> noEffects
+
+    UpdateField PasswordConfirmationField value ->
+      setFieldValue model.passwordConfirmation (trim value)
+        |> updatePasswordConfirmationInModel model
+        |> noEffects
+
+    UpdateField PasswordField value ->
+      setFieldValue model.password value
+        |> updatePasswordInModel model
+        |> noEffects
+
+    UpdateField UsernameField value ->
+      setFieldValue model.username value
+        |> updateUsernameInModel model
+        |> checkUsernameAvailability
+
+    UsernameAvailable ->
+      { model
+        | usernameAvailable = True
+      }
+        |> noEffects
+
+    UsernameNotAvailable ->
+      { model
+        | usernameAvailable = False
+      }
+        |> noEffects
 
 
 updateHouseholdInModel : Model -> Field -> Model
@@ -137,3 +138,40 @@ updateUsernameInModel model field =
   { model
     | username = field
   }
+
+
+validateField : Field -> Field
+validateField field =
+  if field.value |> isEmpty then
+    { field
+      | error = " cannot be empty"
+      , hasError = True
+    }
+  else
+    { field
+      | error = ""
+      , hasError = False
+    }
+
+
+validateFields : Model -> Model
+validateFields model =
+  let
+    household =
+      validateField model.household
+
+    username =
+      validateField model.username
+
+    password =
+      validateField model.password
+
+    passwordConfirmation =
+      validateField model.passwordConfirmation
+  in
+    { model
+      | household = household
+      , username = username
+      , password = password
+      , passwordConfirmation = passwordConfirmation
+    }

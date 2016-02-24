@@ -26,6 +26,10 @@ defmodule KidcoinApi.UserController do
     end
   end
 
+  def check_availability(conn, %{"username" => username}) do
+    render(conn, "check_availability.json", username: username, available: false)
+  end
+
   def show(conn, %{"id" => id}) do
     user = Repo.get!(User, id)
     render(conn, "show.json", user: user)

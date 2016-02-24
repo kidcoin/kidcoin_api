@@ -29,5 +29,6 @@ defmodule KidcoinApi.Router do
     resources "/households", HouseholdController, except: [:new, :edit]
     resources "/transactions", TransactionController, except: [:new, :edit]
     resources "/users", UserController, except: [:new, :edit]
+    get "/username/:username", UserController, :check_availability
   end
 end

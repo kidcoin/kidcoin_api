@@ -1,6 +1,10 @@
 defmodule KidcoinApi.UserView do
   use KidcoinApi.Web, :view
 
+  def render("check_availability.json", %{username: username, available: available}) do
+    %{data: %{username: username, available: false}}
+  end
+
   def render("index.json", %{users: users}) do
     %{data: render_many(users, KidcoinApi.UserView, "user.json")}
   end

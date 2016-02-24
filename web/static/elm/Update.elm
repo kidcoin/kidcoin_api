@@ -80,15 +80,25 @@ update action model =
         }
 
     RegistrationPageAction pageAction ->
-      noEffects
-        { model
-          | registrationPageModel = Pages.Registration.Update.update pageAction model.registrationPageModel
-        }
+      let
+        ( registrationPageModel, nestedEffects ) =
+          Pages.Registration.Update.update
+            pageAction
+            model.registrationPageModel
+
+        wrappedEffects =
+          Effects.map RegistrationPageAction nestedEffects
+      in
+        ( { model
+            | registrationPageModel = registrationPageModel
+          }
+        , wrappedEffects
+        )
 
     RouterAction routeAction ->
       TransitRouter.update routerConfig routeAction model
 
 
-noEffects : Model -> ( Model, Effects a )
+noEffects : Model -> ( Model, Effects Action )
 noEffects model =
   ( model, Effects.none )

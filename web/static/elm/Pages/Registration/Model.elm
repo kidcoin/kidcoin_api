@@ -4,6 +4,8 @@ module Pages.Registration.Model (..) where
 type Action
   = FormSubmit
   | UpdateField FieldType String
+  | UsernameAvailable
+  | UsernameNotAvailable
 
 
 type FieldType
@@ -24,6 +26,7 @@ type alias Field =
 type alias Model =
   { household : Field
   , username : Field
+  , usernameAvailable : Bool
   , password : Field
   , passwordConfirmation : Field
   }
@@ -34,5 +37,6 @@ init =
   Model
     (Field HouseholdField "" "" False)
     (Field UsernameField "" "" False)
+    True
     (Field PasswordField "" "" False)
     (Field PasswordConfirmationField "" "" False)
