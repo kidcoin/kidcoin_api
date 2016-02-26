@@ -1,6 +1,9 @@
 defmodule KidcoinApi.UserController do
   use KidcoinApi.Web, :controller
+  require Logger
 
+  import Ecto.Query, only: [select: 3, where: 2]
+  import Ecto.Query.API, only: [count: 1]
   alias KidcoinApi.User
 
   plug :scrub_params, "user" when action in [:create, :update]
@@ -27,7 +30,9 @@ defmodule KidcoinApi.UserController do
   end
 
   def check_availability(conn, %{"username" => username}) do
-    render(conn, "check_availability.json", username: username, available: false)
+    username = clean_username(username)
+    available = username_available?(username)
+    render(conn, "check_availability.json", username: username, available: available)
   end
 
   def show(conn, %{"id" => id}) do
@@ -58,4 +63,25 @@ defmodule KidcoinApi.UserController do
 
     send_resp(conn, :no_content, "")
   end
+
+  defp clean_username(username) do
+    username
+    |> String.downcase
+    |> String.strip
+  end
+
+  defp username_available?(username) when is_binary(username) do
+    count = User
+            |> where(username: ^username)
+            |> select([u], count(u.id))
+            |> Repo.one
+            |> username_available?
+  end
+
+  defp username_available?(0),
+  do: true
+
+  defp username_available?(count) when is_integer(count) and count != 0,
+  do: false
+
 end

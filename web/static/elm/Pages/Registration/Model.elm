@@ -1,12 +1,6 @@
 module Pages.Registration.Model (..) where
 
 
-type Availability
-  = Available
-  | NotAvailable
-  | NotChecked
-
-
 type Action
   = FormSubmit
   | UpdateField FieldType String
@@ -34,7 +28,6 @@ type alias Model =
   , username : Field
   , password : Field
   , passwordConfirmation : Field
-  , isUsernameAvailable : Availability
   }
 
 
@@ -45,4 +38,3 @@ init =
     (Field UsernameField "" "" False)
     (Field PasswordField "" "" False)
     (Field PasswordConfirmationField "" "" False)
-    NotChecked

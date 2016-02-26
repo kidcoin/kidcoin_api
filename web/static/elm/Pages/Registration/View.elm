@@ -175,5 +175,4 @@ view address model =
     [ class "form" ]
     [ h4 [] [ text "Register Household" ]
     , formView address model
-    , text <| toString model.isUsernameAvailable
     ]
