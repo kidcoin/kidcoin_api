@@ -136,7 +136,9 @@ update action model =
 
     UpdateField PasswordConfirmationField value ->
       setFieldValue model.passwordConfirmation (trim value)
+        |> clearFieldError
         |> setPasswordConfirmation model
+        |> validatePasswordsMatch
         |> noEffects
 
     UpdateField PasswordField value ->
@@ -204,18 +206,40 @@ validate model =
     passwordConfirmation =
       model.passwordConfirmation
         |> validateNotEmpty
+
+    model' =
+      { model
+        | household = household
+        , username = username
+        , password = password
+        , passwordConfirmation = passwordConfirmation
+      }
   in
-    { model
-      | household = household
-      , username = username
-      , password = password
-      , passwordConfirmation = passwordConfirmation
-    }
+    model'
+      |> validatePasswordsMatch
+
+
+validatePasswordsMatch : Model -> Model
+validatePasswordsMatch model =
+  if model.password.hasError || model.passwordConfirmation.hasError then
+    model
+  else
+    let
+      passwordsMatch =
+        model.password.value == model.passwordConfirmation.value
+    in
+      if passwordsMatch then
+        model
+      else
+        setFieldError model.passwordConfirmation "does not match your Password"
+          |> setPasswordConfirmation model
 
 
 validateUsernamePattern : Field -> Field
 validateUsernamePattern field =
-  if usernameHasInvalidCharacters field.value then
+  if field.hasError then
+    field
+  else if usernameHasInvalidCharacters field.value then
     setFieldError field "can only contain letters, numbers, periods, dashes, or underscores"
   else
     field
