@@ -43,14 +43,16 @@ formLabel : Field -> String -> Html
 formLabel field inputName =
   let
     labelText =
-      fieldLabel field.fieldType
+      if field.hasError then
+        fieldLabel field.fieldType ++ " " ++ field.error
+      else
+        fieldLabel field.fieldType
   in
-    if field.hasError then
-      label
-        [ for inputName, class "error" ]
-        [ text <| labelText ++ " " ++ field.error ]
-    else
-      label [ for inputName ] [ text labelText ]
+    label
+      [ for inputName
+      , classList [ ( "error", field.hasError ) ]
+      ]
+      [ text <| labelText ]
 
 
 formField : Signal.Address Action -> Field -> Html
@@ -90,9 +92,7 @@ formField address field =
       , rowInput
       ]
   in
-    div
-      [ classes ]
-      children
+    div [ classes ] children
 
 
 formSubmitButton : Signal.Address Action -> Html
@@ -113,17 +113,37 @@ formSubmitButton address =
     ]
 
 
+householdFormField : Signal.Address Action -> Model -> Html
+householdFormField address model =
+  formField address model.household
+
+
+usernameFormField : Signal.Address Action -> Model -> Html
+usernameFormField address model =
+  formField address model.username
+
+
+passwordFormField : Signal.Address Action -> Model -> Html
+passwordFormField address model =
+  formField address model.password
+
+
+passwordConfirmationFormField : Signal.Address Action -> Model -> Html
+passwordConfirmationFormField address model =
+  formField address model.passwordConfirmation
+
+
 formView : Signal.Address Action -> Model -> Html
 formView address model =
   div
     []
     [ formRow
-        [ formField address model.household
-        , formField address model.username
+        [ householdFormField address model
+        , usernameFormField address model
         ]
     , formRow
-        [ formField address model.password
-        , formField address model.passwordConfirmation
+        [ passwordFormField address model
+        , passwordConfirmationFormField address model
         ]
     , formRow
         [ formSubmitButton address
@@ -155,5 +175,5 @@ view address model =
     [ class "form" ]
     [ h4 [] [ text "Register Household" ]
     , formView address model
-    , text <| toString model.usernameAvailable
+    , text <| toString model.isUsernameAvailable
     ]

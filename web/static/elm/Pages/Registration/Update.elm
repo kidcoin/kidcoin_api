@@ -2,25 +2,39 @@ module Pages.Registration.Update (..) where
 
 import Effects exposing (Effects, none)
 import Http
-import Json.Decode
+import Json.Decode exposing ((:=))
 import Pages.Registration.Model exposing (..)
+import Regex
 import String exposing (isEmpty, trim)
 import Task
 
 
 checkUsernameAvailability : Model -> ( Model, Effects Action )
 checkUsernameAvailability model =
-  let
-    url =
-      "/api/username/" ++ model.username.value
+  if model.username.hasError then
+    ( model, Effects.none )
+  else
+    let
+      url =
+        "/api/username/" ++ model.username.value
 
-    request =
-      Http.get (Json.Decode.succeed UsernameNotAvailable) url
+      request =
+        Http.get usernameAvailabilityDecoder url
 
-    httpRequest =
-      Task.onError request (\error -> Task.succeed UsernameAvailable)
-  in
-    ( model, Effects.task httpRequest )
+      httpRequest =
+        Task.onError
+          request
+          (\error -> Task.succeed UsernameAvailable)
+    in
+      ( model, Effects.task httpRequest )
+
+
+clearFieldError : Field -> Field
+clearFieldError field =
+  { field
+    | error = ""
+    , hasError = False
+  }
 
 
 noEffects : Model -> ( Model, Effects Action )
@@ -47,7 +61,7 @@ redirectToLoginPageOrShowErrors : Model -> ( Model, Effects Action )
 redirectToLoginPageOrShowErrors model =
   let
     model' =
-      Debug.log "model after validation" <| validateFields model
+      Debug.log "model after validation" <| validate model
 
     hasError =
       model'.household.hasError
@@ -66,10 +80,46 @@ redirectToLoginPageOrShowErrors model =
           |> noEffects
 
 
+setFieldError : Field -> String -> Field
+setFieldError field error =
+  { field
+    | error = error
+    , hasError = True
+  }
+
+
 setFieldValue : Field -> String -> Field
 setFieldValue field value =
   { field
     | value = value
+  }
+
+
+setHousehold : Model -> Field -> Model
+setHousehold model field =
+  { model
+    | household = field
+  }
+
+
+setPassword : Model -> Field -> Model
+setPassword model field =
+  { model
+    | password = field
+  }
+
+
+setPasswordConfirmation : Model -> Field -> Model
+setPasswordConfirmation model field =
+  { model
+    | passwordConfirmation = field
+  }
+
+
+setUsername : Model -> Field -> Model
+setUsername model field =
+  { model
+    | username = field
   }
 
 
@@ -81,93 +131,79 @@ update action model =
 
     UpdateField HouseholdField value ->
       setFieldValue model.household (trim value)
-        |> updateHouseholdInModel model
+        |> setHousehold model
         |> noEffects
 
     UpdateField PasswordConfirmationField value ->
       setFieldValue model.passwordConfirmation (trim value)
-        |> updatePasswordConfirmationInModel model
+        |> setPasswordConfirmation model
         |> noEffects
 
     UpdateField PasswordField value ->
       setFieldValue model.password value
-        |> updatePasswordInModel model
+        |> setPassword model
         |> noEffects
 
     UpdateField UsernameField value ->
       setFieldValue model.username value
-        |> updateUsernameInModel model
+        |> clearFieldError
+        |> validateNotEmpty
+        |> validateUsernamePattern
+        |> setUsername model
         |> checkUsernameAvailability
 
     UsernameAvailable ->
-      { model
-        | usernameAvailable = True
-      }
+      clearFieldError model.username
+        |> setUsername model
         |> noEffects
 
     UsernameNotAvailable ->
-      { model
-        | usernameAvailable = False
-      }
+      setFieldError model.username "is not available"
+        |> setUsername model
         |> noEffects
 
 
-updateHouseholdInModel : Model -> Field -> Model
-updateHouseholdInModel model field =
-  { model
-    | household = field
-  }
+usernameAvailabilityDecoder : Json.Decode.Decoder Action
+usernameAvailabilityDecoder =
+  Json.Decode.object1
+    (\bool ->
+      case bool of
+        True ->
+          UsernameAvailable
+
+        False ->
+          UsernameNotAvailable
+    )
+    (Json.Decode.at
+      [ "data", "available" ]
+      Json.Decode.bool
+    )
 
 
-updatePasswordInModel : Model -> Field -> Model
-updatePasswordInModel model field =
-  { model
-    | password = field
-  }
+usernameHasInvalidCharacters : String -> Bool
+usernameHasInvalidCharacters =
+  Regex.contains (Regex.regex "[^-a-zA-Z0-9_.]+")
 
 
-updatePasswordConfirmationInModel : Model -> Field -> Model
-updatePasswordConfirmationInModel model field =
-  { model
-    | passwordConfirmation = field
-  }
-
-
-updateUsernameInModel : Model -> Field -> Model
-updateUsernameInModel model field =
-  { model
-    | username = field
-  }
-
-
-validateField : Field -> Field
-validateField field =
-  if field.value |> isEmpty then
-    { field
-      | error = " cannot be empty"
-      , hasError = True
-    }
-  else
-    { field
-      | error = ""
-      , hasError = False
-    }
-
-
-validateFields : Model -> Model
-validateFields model =
+validate : Model -> Model
+validate model =
   let
     household =
-      validateField model.household
+      model.household
+        |> validateNotEmpty
 
     username =
-      validateField model.username
+      model.username
+        |> validateNotEmpty
+        |> validateUsernamePattern
 
     password =
-      validateField model.password
+      model.password
+        |> validateNotEmpty
 
     passwordConfirmation =
-      validateField model.passwordConfirmation
+      model.passwordConfirmation
+        |> validateNotEmpty
   in
     { model
       | household = household
@@ -175,3 +211,21 @@ validateFields model =
       , password = password
       , passwordConfirmation = passwordConfirmation
     }
+
+
+validateUsernamePattern : Field -> Field
+validateUsernamePattern field =
+  if usernameHasInvalidCharacters field.value then
+    setFieldError field "can only contain letters, numbers, periods, dashes, or underscores"
+  else
+    field
+
+
+validateNotEmpty : Field -> Field
+validateNotEmpty field =
+  if field.hasError then
+    field
+  else if field.value |> isEmpty then
+    setFieldError field " cannot be empty"
+  else
+    field
