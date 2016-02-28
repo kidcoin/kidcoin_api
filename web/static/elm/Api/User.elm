@@ -7,6 +7,18 @@ import Json.Encode
 import Task
 
 
+type alias User =
+  { household : String
+  , username : String
+  , email : String
+  }
+
+
+createUser : User -> String -> (String -> a) -> (String -> a) -> Effects a
+createUser user password succeedAction failedAction =
+  Effects.none
+
+
 isUsernameAvailable : String -> (Bool -> a) -> Effects a
 isUsernameAvailable username action =
   let

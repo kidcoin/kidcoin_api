@@ -7,6 +7,8 @@ type Action
   = FormSubmit
   | UpdateField FieldType String
   | UsernameAvailability Bool
+  | RegistrationSuccess String
+  | RegistrationFailed String
 
 
 type FieldType

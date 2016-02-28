@@ -1,6 +1,6 @@
 module Pages.Registration.Update (..) where
 
-import Api.User exposing (isUsernameAvailable)
+import Api.User exposing (createUser, isUsernameAvailable, User)
 import Effects exposing (Effects)
 import Pages.Registration.Model exposing (..)
 import String exposing (isEmpty, trim)
@@ -96,7 +96,7 @@ submitFormIfValid model =
       False ->
         -- submit form
         model'
-          |> withFormSubmitEffects
+          |> submitRegistration
 
 
 update : Action -> Model -> ( Model, Effects Action )
@@ -243,6 +243,14 @@ validateNotEmpty field =
     field
 
 
-withFormSubmitEffects : Model -> ( Model, Effects Action )
-withFormSubmitEffects model =
-  ( model, Effects.none )
+submitRegistration : Model -> ( Model, Effects Action )
+submitRegistration model =
+  let
+    effect =
+      createUser
+        (User model.household.value model.username.value "")
+        model.password.value
+        RegistrationSuccess
+        RegistrationFailed
+  in
+    ( model, effect )
