@@ -40,6 +40,13 @@ passwordMatches model =
       }
 
 
+setEmail : Model -> Field -> Model
+setEmail model field =
+  { model
+    | email = field
+  }
+
+
 setHousehold : Model -> Field -> Model
 setHousehold model field =
   { model
@@ -75,7 +82,8 @@ submitFormIfValid model =
       Debug.log "model after validation" <| validate model
 
     hasError =
-      model'.household.hasError
+      model'.email.hasError
+        || model'.household.hasError
         || model'.username.hasError
         || model'.passwordConfirmation.hasError
         || model'.password.hasError
@@ -96,6 +104,14 @@ update action model =
   case (Debug.log "processing registration update action" action) of
     FormSubmit ->
       submitFormIfValid model
+
+    UpdateField EmailField value ->
+      setFieldValue model.email value
+        |> clearFieldError
+        |> validateNotEmpty
+        |> validateEmailPattern
+        |> setEmail model
+        |> noEffects
 
     UpdateField HouseholdField value ->
       setFieldValue model.household (trim value)
@@ -132,10 +148,25 @@ update action model =
         |> setUsername model
         |> noEffects
 
+    RegistrationSuccess response ->
+      -- redirect to login
+      model
+        |> noEffects
+
+    RegistrationFailed response ->
+      -- redirect to login
+      model
+        |> noEffects
+
 
 validate : Model -> Model
 validate model =
   let
+    email =
+      model.email
+        |> validateNotEmpty
+        |> validateEmailPattern
+
     household =
       model.household
         |> validateNotEmpty
@@ -155,7 +186,8 @@ validate model =
 
     model' =
       { model
-        | household = household
+        | email = email
+        , household = household
         , username = username
         , password = password
         , passwordConfirmation = passwordConfirmation
@@ -179,6 +211,16 @@ validatePasswordsMatch model =
       else
         setFieldError model.passwordConfirmation "does not match your Password"
           |> setPasswordConfirmation model
+
+
+validateEmailPattern : Field -> Field
+validateEmailPattern field =
+  if field.hasError then
+    field
+  else if not <| isEmailValid field.value then
+    setFieldError field "is invalid"
+  else
+    field
 
 
 validateUsernamePattern : Field -> Field

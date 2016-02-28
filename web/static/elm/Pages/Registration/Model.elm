@@ -10,7 +10,8 @@ type Action
 
 
 type FieldType
-  = HouseholdField
+  = EmailField
+  | HouseholdField
   | UsernameField
   | PasswordField
   | PasswordConfirmationField
@@ -25,26 +26,12 @@ type alias Field =
 
 
 type alias Model =
-  { household : Field
+  { email : Field
+  , household : Field
   , username : Field
   , password : Field
   , passwordConfirmation : Field
   }
-
-
-init : Model
-init =
-  Model
-    (Field HouseholdField "" "" False)
-    (Field UsernameField "" "" False)
-    (Field PasswordField "" "" False)
-    (Field PasswordConfirmationField "" "" False)
-
-
-isUsernameValid : String -> Bool
-isUsernameValid username =
-  username
-    |> Regex.contains usernamePattern
 
 
 clearFieldError : Field -> Field
@@ -53,6 +40,39 @@ clearFieldError field =
     | error = ""
     , hasError = False
   }
+
+
+emailPattern : Regex.Regex
+emailPattern =
+  Regex.regex "\\S+@\\S+\\.\\S+"
+
+
+init : Model
+init =
+  Model
+    (Field EmailField "" "" False)
+    (Field HouseholdField "" "" False)
+    (Field UsernameField "" "" False)
+    (Field PasswordField "" "" False)
+    (Field PasswordConfirmationField "" "" False)
+
+
+invalidUsernamePattern : Regex.Regex
+invalidUsernamePattern =
+  Regex.regex "[^-a-zA-Z0-9_.]+"
+
+
+isEmailValid : String -> Bool
+isEmailValid email =
+  email
+    |> Regex.contains emailPattern
+
+
+isUsernameValid : String -> Bool
+isUsernameValid username =
+  username
+    |> Regex.contains invalidUsernamePattern
+    |> not
 
 
 setFieldError : Field -> String -> Field
@@ -68,8 +88,3 @@ setFieldValue field value =
   { field
     | value = value
   }
-
-
-usernamePattern : Regex.Regex
-usernamePattern =
-  Regex.regex "[^-a-zA-Z0-9_.]+"

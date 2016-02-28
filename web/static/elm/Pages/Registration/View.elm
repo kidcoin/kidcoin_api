@@ -10,6 +10,9 @@ import Pages.Registration.Model exposing (..)
 fieldLabel : FieldType -> String
 fieldLabel fieldType =
   case fieldType of
+    EmailField ->
+      "Email"
+
     HouseholdField ->
       "Household"
 
@@ -26,6 +29,9 @@ fieldLabel fieldType =
 fieldName : FieldType -> String
 fieldName fieldType =
   case fieldType of
+    EmailField ->
+      "email"
+
     HouseholdField ->
       "household"
 
@@ -70,7 +76,6 @@ formField address field =
     classes =
       classList
         [ ( "column", True )
-        , ( "form-row", True )
         , ( "error", field.hasError )
         ]
 
@@ -113,6 +118,11 @@ formSubmitButton address =
     ]
 
 
+emailFormField : Signal.Address Action -> Model -> Html
+emailFormField address model =
+  formField address model.email
+
+
 householdFormField : Signal.Address Action -> Model -> Html
 householdFormField address model =
   formField address model.household
@@ -140,10 +150,12 @@ formView address model =
     [ formRow
         [ householdFormField address model
         , usernameFormField address model
+        , emailFormField address model
         ]
     , formRow
         [ passwordFormField address model
         , passwordConfirmationFormField address model
+        , div [ class "column" ] []
         ]
     , formRow
         [ formSubmitButton address
