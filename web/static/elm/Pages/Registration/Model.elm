@@ -6,8 +6,7 @@ import Regex
 type Action
   = FormSubmit
   | UpdateField FieldType String
-  | UsernameAvailable
-  | UsernameNotAvailable
+  | UsernameAvailability Bool
 
 
 type FieldType

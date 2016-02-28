@@ -7,14 +7,14 @@ import Json.Encode
 import Task
 
 
-isUsernameAvailable : String -> a -> a -> Effects a
-isUsernameAvailable username availableAction unavailableAction =
+isUsernameAvailable : String -> (Bool -> a) -> Effects a
+isUsernameAvailable username action =
   let
     url =
       "/api/username/" ++ username
 
     decoder =
-      usernameAvailabilityDecoder availableAction unavailableAction
+      usernameAvailabilityDecoder action
 
     request =
       Http.get decoder url
@@ -22,22 +22,15 @@ isUsernameAvailable username availableAction unavailableAction =
     httpRequest =
       Task.onError
         request
-        (\error -> Task.succeed availableAction)
+        (\error -> Task.succeed (action True))
   in
     Effects.task httpRequest
 
 
-usernameAvailabilityDecoder : a -> a -> Json.Decode.Decoder a
-usernameAvailabilityDecoder availableAction unavailableAction =
+usernameAvailabilityDecoder : (Bool -> a) -> Json.Decode.Decoder a
+usernameAvailabilityDecoder action =
   Json.Decode.object1
-    (\bool ->
-      case bool of
-        True ->
-          availableAction
-
-        False ->
-          unavailableAction
-    )
+    action
     (Json.Decode.at
       [ "data", "available" ]
       Json.Decode.bool

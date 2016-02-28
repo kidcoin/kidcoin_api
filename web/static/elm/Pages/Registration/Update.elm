@@ -1,9 +1,8 @@
 module Pages.Registration.Update (..) where
 
-import Api.User
-import Effects exposing (Effects, none)
+import Api.User exposing (isUsernameAvailable)
+import Effects exposing (Effects)
 import Pages.Registration.Model exposing (..)
-import Regex
 import String exposing (isEmpty, trim)
 
 
@@ -14,10 +13,9 @@ checkUsernameAvailability model =
       if model.username.hasError then
         Effects.none
       else
-        Api.User.isUsernameAvailable
+        isUsernameAvailable
           model.username.value
-          UsernameAvailable
-          UsernameNotAvailable
+          UsernameAvailability
   in
     ( model, effect )
 
@@ -124,12 +122,12 @@ update action model =
         |> setUsername model
         |> checkUsernameAvailability
 
-    UsernameAvailable ->
+    UsernameAvailability True ->
       clearFieldError model.username
         |> setUsername model
         |> noEffects
 
-    UsernameNotAvailable ->
+    UsernameAvailability False ->
       setFieldError model.username "is not available"
         |> setUsername model
         |> noEffects
