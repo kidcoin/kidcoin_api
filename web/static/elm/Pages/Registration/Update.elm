@@ -1,40 +1,25 @@
 module Pages.Registration.Update (..) where
 
+import Api.User
 import Effects exposing (Effects, none)
-import Http
-import Json.Decode exposing ((:=))
 import Pages.Registration.Model exposing (..)
 import Regex
 import String exposing (isEmpty, trim)
-import Task
 
 
 checkUsernameAvailability : Model -> ( Model, Effects Action )
 checkUsernameAvailability model =
-  if model.username.hasError then
-    ( model, Effects.none )
-  else
-    let
-      url =
-        "/api/username/" ++ model.username.value
-
-      request =
-        Http.get usernameAvailabilityDecoder url
-
-      httpRequest =
-        Task.onError
-          request
-          (\error -> Task.succeed UsernameAvailable)
-    in
-      ( model, Effects.task httpRequest )
-
-
-clearFieldError : Field -> Field
-clearFieldError field =
-  { field
-    | error = ""
-    , hasError = False
-  }
+  let
+    effect =
+      if model.username.hasError then
+        Effects.none
+      else
+        Api.User.isUsernameAvailable
+          model.username.value
+          UsernameAvailable
+          UsernameNotAvailable
+  in
+    ( model, effect )
 
 
 noEffects : Model -> ( Model, Effects Action )
@@ -55,44 +40,6 @@ passwordMatches model =
         | error = "Passwords do not match"
         , hasError = True
       }
-
-
-redirectToLoginPageOrShowErrors : Model -> ( Model, Effects Action )
-redirectToLoginPageOrShowErrors model =
-  let
-    model' =
-      Debug.log "model after validation" <| validate model
-
-    hasError =
-      model'.household.hasError
-        || model'.username.hasError
-        || model'.passwordConfirmation.hasError
-        || model'.password.hasError
-  in
-    case hasError of
-      True ->
-        model'
-          |> noEffects
-
-      False ->
-        -- redirect to login page
-        model'
-          |> noEffects
-
-
-setFieldError : Field -> String -> Field
-setFieldError field error =
-  { field
-    | error = error
-    , hasError = True
-  }
-
-
-setFieldValue : Field -> String -> Field
-setFieldValue field value =
-  { field
-    | value = value
-  }
 
 
 setHousehold : Model -> Field -> Model
@@ -123,11 +70,34 @@ setUsername model field =
   }
 
 
+submitFormIfValid : Model -> ( Model, Effects Action )
+submitFormIfValid model =
+  let
+    model' =
+      Debug.log "model after validation" <| validate model
+
+    hasError =
+      model'.household.hasError
+        || model'.username.hasError
+        || model'.passwordConfirmation.hasError
+        || model'.password.hasError
+  in
+    case hasError of
+      True ->
+        model'
+          |> noEffects
+
+      False ->
+        -- submit form
+        model'
+          |> withFormSubmitEffects
+
+
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case (Debug.log "processing registration update action" action) of
     FormSubmit ->
-      redirectToLoginPageOrShowErrors model
+      submitFormIfValid model
 
     UpdateField HouseholdField value ->
       setFieldValue model.household (trim value)
@@ -163,28 +133,6 @@ update action model =
       setFieldError model.username "is not available"
         |> setUsername model
         |> noEffects
-
-
-usernameAvailabilityDecoder : Json.Decode.Decoder Action
-usernameAvailabilityDecoder =
-  Json.Decode.object1
-    (\bool ->
-      case bool of
-        True ->
-          UsernameAvailable
-
-        False ->
-          UsernameNotAvailable
-    )
-    (Json.Decode.at
-      [ "data", "available" ]
-      Json.Decode.bool
-    )
-
-
-usernameHasInvalidCharacters : String -> Bool
-usernameHasInvalidCharacters =
-  Regex.contains (Regex.regex "[^-a-zA-Z0-9_.]+")
 
 
 validate : Model -> Model
@@ -239,7 +187,7 @@ validateUsernamePattern : Field -> Field
 validateUsernamePattern field =
   if field.hasError then
     field
-  else if usernameHasInvalidCharacters field.value then
+  else if isUsernameValid field.value then
     setFieldError field "can only contain letters, numbers, periods, dashes, or underscores"
   else
     field
@@ -253,3 +201,8 @@ validateNotEmpty field =
     setFieldError field " cannot be empty"
   else
     field
+
+
+withFormSubmitEffects : Model -> ( Model, Effects Action )
+withFormSubmitEffects model =
+  ( model, Effects.none )
