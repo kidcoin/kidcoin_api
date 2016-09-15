@@ -99,6 +99,24 @@ submitFormIfValid model =
           |> submitRegistration
 
 
+submitRegistration : Model -> ( Model, Effects Action )
+submitRegistration model =
+  let
+    effect =
+      createUser
+        (toUser model)
+        model.password.value
+        RegistrationSuccess
+        RegistrationFailed
+  in
+    ( model, effect )
+
+
+toUser : Model -> User
+toUser model =
+  User model.household.value model.username.value ""
+
+
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case (Debug.log "processing registration update action" action) of
@@ -227,7 +245,7 @@ validateUsernamePattern : Field -> Field
 validateUsernamePattern field =
   if field.hasError then
     field
-  else if isUsernameValid field.value then
+  else if not <| isUsernameValid field.value then
     setFieldError field "can only contain letters, numbers, periods, dashes, or underscores"
   else
     field
@@ -241,16 +259,3 @@ validateNotEmpty field =
     setFieldError field " cannot be empty"
   else
     field
-
-
-submitRegistration : Model -> ( Model, Effects Action )
-submitRegistration model =
-  let
-    effect =
-      createUser
-        (User model.household.value model.username.value "")
-        model.password.value
-        RegistrationSuccess
-        RegistrationFailed
-  in
-    ( model, effect )
